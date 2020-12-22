@@ -1,0 +1,134 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2.Tests\\Task2.Tests.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2.Tests\\Task2.Tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2.Tests\\Task2.Tests.csproj",
+        "projectName": "Task2.Tests",
+        "projectPath": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2.Tests\\Task2.Tests.csproj",
+        "packagesPath": "C:\\Users\\Perizat_Karina\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2.Tests\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Perizat_Karina\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "targetAlias": "netcoreapp3.1",
+            "projectReferences": {
+              "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2\\Task2.csproj": {
+                "projectPath": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2\\Task2.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
+          "dependencies": {
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[16.7.1, )"
+            },
+            "NUnit3TestAdapter": {
+              "target": "Package",
+              "version": "[3.17.0, )"
+            },
+            "nunit": {
+              "target": "Package",
+              "version": "[3.12.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2\\Task2.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2\\Task2.csproj",
+        "projectName": "Task2",
+        "projectPath": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2\\Task2.csproj",
+        "packagesPath": "C:\\Users\\Perizat_Karina\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Perizat_Karina\\Documents\\GitHub\\.Net-mentoring-D0-D1-M6\\Reflection\\Task2\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Perizat_Karina\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "targetAlias": "netcoreapp3.1",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
