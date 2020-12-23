@@ -8,157 +8,194 @@ namespace Task1
 {
     public class Container
     {
+        private Dictionary<Type, Type> _dictionary;
         private Assembly _assembly;
-        private IDictionary<Type, Type> _dictionary;
+        private Type[] _assemblyTypes;
+        private bool withAttributes;
 
         public Container()
         {
             _dictionary = new Dictionary<Type, Type>();
+            withAttributes = false;
         }
-
-        public void AddAssembly(Assembly assembly)
+        public Assembly AddAssembly(Assembly assembly)
         {
             if (_assembly != null)
             {
                 throw new Exception($"Assembly already added to this container");
             }
             _assembly = assembly;
-            AddAttributedTypes(_assembly);
+            _assemblyTypes = _assembly.GetExportedTypes();
+            CreateInstanceByAttributes();
+            return _assembly;
         }
 
-        private bool HasConstructorWithParameters(Type type)
+        private void LoadAssembly()
         {
-            var constructorInfo = type.GetConstructors().Where(p => p.GetParameters().Length > 0).FirstOrDefault();
-            return constructorInfo != null;
+            _assembly ??= AddAssembly(Assembly.GetExecutingAssembly());
+            _assemblyTypes ??= _assembly.GetExportedTypes();
+        }
+
+        public void AddType(Type type)
+        {
+            if (CheckIfTypesExists(type))
+            {
+                throw new Exception($"Dependency of {type.Name} already exists");
+            }
+            _dictionary.Add(type, type);
+        }
+
+        public void AddType(Type type, Type baseType) //baseType is a key, type is value
+        {
+            if (CheckIfTypesExists(baseType))
+            {
+                throw new Exception($"Dependency of {baseType.Name} already exists");
+            }
+            _dictionary.Add(baseType,type);
+            AddType(type);
+        }
+        private bool CheckIfTypesExists(Type type)
+        {
+            bool itemExists = false;
+            foreach (var item in _dictionary)
+            {
+                itemExists = item.Key == type;
+                if (itemExists)
+                {
+                    return itemExists;
+                }
+            }
+            return itemExists;
+        }
+
+        private object CreateInstance(Type type)
+        {
+            if (type.IsInterface)
+            {
+                String ErrMes = $"Dependency of {type.Name} is not provided";
+                var typeOfInterface = AddInterface(type);
+
+                if (!CheckIfTypesExists(_dictionary[typeOfInterface]))
+                    throw new Exception(ErrMes);
+                type = typeOfInterface;
+
+                if (type.IsInterface && withAttributes)
+                    throw new Exception(ErrMes);
+            }
+            if (!type.IsInterface)
+            {
+                object _object;
+                object[] args = GetConstructorParameters(type);
+                _object = args == null ? Activator.CreateInstance(type) : Activator.CreateInstance(type, args);
+                InitializeProperties(type);
+                return _object;
+            }
+            else return null;
+        }
+
+        private void CreateInstanceByAttributes()
+        {
+            LoadAssembly();
+            withAttributes = true;
+            foreach (var type in _assemblyTypes)
+            {
+                var constructorImportAttribute = type.GetCustomAttribute<ImportConstructorAttribute>();
+                var importPropertiesAttributes = type.GetProperties().Where(p => p.GetCustomAttribute<ImportAttribute>() != null).Any();
+                var exportAttributes = type.GetCustomAttribute<ExportAttribute>();
+                if (constructorImportAttribute != null || importPropertiesAttributes || exportAttributes != null)
+                {
+                    CreateInstance(type);
+                }
+            }
+        }
+
+        private Type LoadTypeForInterface(Type type)
+        {
+            Type returnType;
+            returnType = _dictionary[type];
+            if (returnType.IsInterface)
+            {
+                foreach (var tempType in _assemblyTypes)
+                {
+                    if (type.IsAssignableFrom(tempType) && tempType.IsPublic && !tempType.IsInterface)
+                    {
+                        if (!CheckIfTypesExists(type))
+                        {
+                            AddType(tempType, returnType);
+                        }
+                        returnType = tempType;
+                        break;
+                    }
+                }
+            }
+            return returnType;
+        }
+        private Type AddInterface(Type type)
+        {
+            var typeOfInterface = type;
+            LoadAssembly();
+            if (type.IsInterface)
+            {
+                typeOfInterface = LoadTypeForInterface(typeOfInterface);
+            }
+            if (!CheckIfTypesExists(type))
+            {
+                AddType(typeOfInterface, type);
+            }
+            if (!CheckIfTypesExists(typeOfInterface))
+            {
+                AddType(typeOfInterface);
+            }
+            return typeOfInterface;
         }
 
         private object[] GetConstructorParameters(Type type)
         {
             var constructorInfo = type.GetConstructors().Where(p => p.GetParameters().Length > 0).FirstOrDefault();
-            ParameterInfo[] parameters = constructorInfo.GetParameters();
-            object[] args = new object[parameters.Length];
-            for (int i=0; i < parameters.Length; i++)
+            if (constructorInfo != null)
             {
-                var _paramType = parameters[i].ParameterType;
-
-                _paramType = parameters[i].ParameterType.IsInterface ? GetTypeForInterface(parameters[i].ParameterType) : parameters[i].ParameterType;
-                if (!_dictionary.ContainsKey(_paramType))
+                ParameterInfo[] parameters = constructorInfo.GetParameters();
+                object[] args = new object[parameters.Length];
+                for (int i = 0; i < parameters.Length; i++)
                 {
-                    AddType(_paramType, type);
+                    var _paramType = parameters[i].ParameterType;
+
+                    //_paramType = parameters[i].ParameterType.IsInterface ? CheckandAddType(parameters[i].ParameterType) : parameters[i].ParameterType;
+                    if (!CheckIfTypesExists(_paramType))
+                        AddType(_paramType);
+
+                    var instance = CreateInstance(_paramType);  
+                    args[i] = instance;
                 }
-                var instance = Activator.CreateInstance(_paramType);
-                args[i] = instance;
+                return args.Length > 0 ? args : null;
             }
-            return args;
+            return null;
         }
-
-        public void AddType(Type type)
-        {
-            bool itemExists = false;
-            foreach (var item in _dictionary)
-            {
-                itemExists = item.Key == type ? true : false;
-                if (itemExists)
-                {
-                    throw new Exception($"Dependency of {type.Name} already exists");
-                }
-            }
-
-            _dictionary.Add(type, type);
-            CreateInstance(type);
-        }
-
-        public void AddType(Type type, Type baseType)
-        {
-            bool itemExists = false;
-            foreach (var item in _dictionary)
-            {
-                itemExists = item.Key == type ? true : false;
-                if (itemExists)
-                {
-                    throw new Exception($"Dependency of {type.Name} already exists");
-                }
-            }
-
-            _dictionary.Add(type, baseType);
-            CreateInstance(type);
-        }
-
-        private object CreateInstance(Type type)
-        {
-            object _object;
-            object[] args = HasConstructorWithParameters(type) ? GetConstructorParameters(type) : null;
-            _object = Activator.CreateInstance(type, args);
-            InitializeProperties(type);
-            return _object;
-        }
-
-        private void AddAttributedTypes(Assembly assembly)
-        {
-            foreach (var type in _assembly.GetExportedTypes())
-            {
-                var constructorImportAttribute = type.GetCustomAttribute<ImportConstructorAttribute>();
-                var importPropertiesAttributes = type.GetProperties().Where(p => p.GetCustomAttribute<ImportAttribute>() != null).Any();
-                if (constructorImportAttribute != null || importPropertiesAttributes)
-                {
-                    GetTypeForInterface(type);
-                }
-
-                var exportAttributes = type.GetCustomAttributes<ExportAttribute>();
-                foreach (var exportAttribute in exportAttributes)
-                {
-                    GetTypeForInterface(exportAttribute.Contract ?? type);
-                }
-            }
-        }
-
-        private Type GetTypeForInterface(Type type)
-        {
-            if (type.IsInterface)
-            {
-                if (!_dictionary.ContainsKey(type))
-                {
-                    _assembly = _assembly == null ? Assembly.GetExecutingAssembly() : _assembly;
-                    foreach (var tempType in _assembly.GetTypes())
-                    {
-                        if (type.IsAssignableFrom(tempType) && tempType.IsPublic && !tempType.IsInterface)
-                        {
-                            if (!_dictionary.ContainsKey(tempType))
-                            {
-                                AddType(tempType, type);
-                            }
-                        }
-                    }
-                }
-                type = _dictionary.Where(x => x.Value == type).FirstOrDefault().Key;
-            }
-            return type;
-        }
-
         private void InitializeProperties(Type type)
         {
             PropertyInfo[] propertyInfos = type.GetProperties();
             for (int i = 0; i < propertyInfos.Length; i++)
             {
                 var _paramType = propertyInfos[i].PropertyType;
-                _paramType = propertyInfos[i].PropertyType.IsInterface ? GetTypeForInterface(propertyInfos[i].PropertyType) : propertyInfos[i].PropertyType;
-                if (!_dictionary.ContainsKey(_paramType))
-                {
-                    AddType(_paramType, type);
-                }
+                //_paramType = propertyInfos[i].PropertyType.IsInterface ? CheckandAddType(propertyInfos[i].PropertyType) : propertyInfos[i].PropertyType;
+                if (!CheckIfTypesExists(_paramType))
+                    AddType(_paramType);
+                CreateInstance(_paramType);
             }
         }
 
         public T Get<T>()
         {
-            var _localType = typeof(T);
-            if (!_dictionary.ContainsKey(_localType) && (!_localType.IsInterface) && (_assembly == null))
-            {
-                throw new Exception($"Dependency of {_localType.Name} is not provided");
-            }
+            if (_assembly == null && _dictionary.Count == 0)
+                throw new Exception("Nothing is loaded");
 
-            _localType = GetTypeForInterface(_localType);
-            return (T)CreateInstance(_localType);
+            var type = typeof(T);
+            var instance = CreateInstance(type);
+
+            if (typeof(T) != instance.GetType() && !type.IsInterface && !withAttributes)
+                throw new Exception("Wrong instance");
+            return (T)instance;
         }
+
     }
 }
