@@ -10,7 +10,7 @@ namespace Task1
     {
         private Dictionary<Type, Type> _dictionary;
         private Assembly _assembly;
-        private Type[] _assemblyTypes;
+        private IEnumerable<Type> _assemblyTypes;
         private bool withAttributes;
 
         public Container()
@@ -25,7 +25,7 @@ namespace Task1
                 throw new Exception($"Assembly already added to this container");
             }
             _assembly = assembly;
-            _assemblyTypes = _assembly.GetExportedTypes();
+            _assemblyTypes = _assembly.ExportedTypes;
             CreateInstanceByAttributes();
             return _assembly;
         }
@@ -33,7 +33,7 @@ namespace Task1
         private void LoadAssembly()
         {
             _assembly ??= AddAssembly(Assembly.GetExecutingAssembly());
-            _assemblyTypes ??= _assembly.GetExportedTypes();
+            _assemblyTypes ??= _assembly.ExportedTypes;
         }
 
         public void AddType(Type type)
@@ -70,9 +70,10 @@ namespace Task1
 
         private object CreateInstance(Type type)
         {
+            string ErrMes = $"Dependency of {type.Name} is not provided";
+
             if (type.IsInterface)
             {
-                String ErrMes = $"Dependency of {type.Name} is not provided";
                 var typeOfInterface = AddInterface(type);
 
                 if (!CheckIfTypesExists(_dictionary[typeOfInterface]))
@@ -80,10 +81,15 @@ namespace Task1
                 type = typeOfInterface;
 
                 if (type.IsInterface && withAttributes)
-                    throw new Exception(ErrMes);
+                    return null;
+                //throw new Exception(ErrMes);
             }
+
+            if (!withAttributes && !CheckIfTypesExists(type))
+                throw new Exception(ErrMes);
+
             if (!type.IsInterface)
-            {
+            { 
                 object _object;
                 object[] args = GetConstructorParameters(type);
                 _object = args == null ? Activator.CreateInstance(type) : Activator.CreateInstance(type, args);
@@ -99,14 +105,20 @@ namespace Task1
             withAttributes = true;
             foreach (var type in _assemblyTypes)
             {
-                var constructorImportAttribute = type.GetCustomAttribute<ImportConstructorAttribute>();
-                var importPropertiesAttributes = type.GetProperties().Where(p => p.GetCustomAttribute<ImportAttribute>() != null).Any();
-                var exportAttributes = type.GetCustomAttribute<ExportAttribute>();
-                if (constructorImportAttribute != null || importPropertiesAttributes || exportAttributes != null)
+                if (CheckForAttribute(type))
                 {
                     CreateInstance(type);
                 }
             }
+        }
+
+        private bool CheckForAttribute(Type type)
+        {
+            var constructorImportAttribute = type.GetCustomAttribute<ImportConstructorAttribute>();
+            var importPropertiesAttributes = type.GetProperties().Where(p => p.GetCustomAttribute<ImportAttribute>() != null).Any();
+            var exportAttributes = type.GetCustomAttribute<ExportAttribute>();
+
+            return constructorImportAttribute != null || importPropertiesAttributes || exportAttributes != null;
         }
 
         private Type LoadTypeForInterface(Type type)
